@@ -1,14 +1,14 @@
-name: Build and Push Docker Image  # 워크플로우 이름
+name: Docker 이미지 빌드 및 푸시
 
 on:
   push:
     branches:
       - master
-      - main  # main 브랜치로 푸쉬될 때 실행
+      - main
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest  # GitHub에서 사용할 가상 머신 환경
+    runs-on: ubuntu-latest
 
     steps:
     # 1. GitHub 레포지토리의 코드 체크아웃
@@ -17,16 +17,16 @@ jobs:
 
     # 2. Docker Hub 로그인
     - name: Log in to Docker Hub
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
       with:
-        username: ${{ secrets.DOCKER_USERNAME }}  # GitHub Secrets에 저장된 Docker Hub 사용자 이름
-        password: ${{ secrets.DOCKER_PASSWORD }}  # GitHub Secrets에 저장된 Docker Hub 비밀번호
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
     # 3. 작성자 기반 태그 생성
     - name: Set Docker Tags
       id: tags
       run: |
-        echo "DATE_TAG=$(date +'%Y.%m.%d-%H:%M:%S')" >> $GITHUB_ENV
+        echo "DATE_TAG=$(date +'%Y.%m.%d-%H-%M-%S')" >> $GITHUB_ENV
         echo "USERNAME=${{ github.actor }}" >> $GITHUB_ENV
 
     # 4. Docker 이미지 빌드
