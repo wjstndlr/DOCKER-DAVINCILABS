@@ -1,17 +1,15 @@
-name: Docker 이미지 빌드 및 푸시
+name: Docker 이미지 빌드 및 무중단 배포
 
 on:
   push:
     branches:
-      - master
       - main
 
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
-
+  build-and-deploy:
+    runs-on: self-hosted
     steps:
-    # 1. GitHub 레포지토리의 코드 체크아웃
+    # 1. 코드 체크아웃
     - name: Checkout code
       uses: actions/checkout@v3
 
@@ -22,9 +20,8 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    # 3. 작성자 기반 태그 생성 (KST 시간 적용)
+    # 3. 태그 생성
     - name: Set Docker Tags
-      id: tags
       run: |
         echo "DATE_TAG=$(date -u -d '9 hours' +'%Y.%m.%d-%H-%M-%S')" >> $GITHUB_ENV
         echo "USERNAME=${{ github.actor }}" >> $GITHUB_ENV
@@ -38,3 +35,16 @@ jobs:
     - name: Push Docker Image
       run: |
         docker push wjstndlr988/docker-test:${{ env.DATE_TAG }}-${{ env.USERNAME }}
+
+    # 6. Blue-Green 방식으로 무중단 배포
+    - name: Deploy Docker Container (Blue-Green Deployment)
+      run: |
+        # 새 컨테이너 실행 (Blue)
+        docker run -d --name docker-test-new -p 80:80 wjstndlr988/docker-test:${{ env.DATE_TAG }}-${{ env.USERNAME }}
+
+        # 기존 컨테이너 중지 및 삭제 (Green)
+        docker stop docker-test || true
+        docker rm docker-test || true
+
+        # 새 컨테이너를 기존 이름으로 변경
+        docker rename docker-test-new docker-test
