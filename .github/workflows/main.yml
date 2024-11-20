@@ -40,7 +40,7 @@ jobs:
     - name: Deploy Docker Container (Blue-Green Deployment)
       run: |
         # 새 컨테이너 실행 (Blue)
-        docker run -d --name docker-test-new -p 8080:80 wjstndlr988/docker-test:${{ env.DATE_TAG }}-${{ env.USERNAME }}
+        docker run -d --name docker-test-new -p 8080:80 wjstndlr988/docker-test:${{ env.DATE_TAG }}-${{ env.USERNAME }} tail -f /dev/null
 
         # 기존 컨테이너 중지 및 삭제 (Green)
         docker stop docker-test || true
